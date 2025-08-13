@@ -6,3 +6,14 @@ Dockerfile
 .dockerignore
 README.md
 *.log
+
+node_modules
+.next
+.env*
+*.log
+Dockerfile
+docker-compose*
+.git
+.gitignore
+README.md
+.vscode
