@@ -1,0 +1,29 @@
+# Etapa de build para ambiente de testes
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+# Copia pacotes e instala dependências com cache
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copia código-fonte completo
+COPY . .
+
+# Gera build para testes
+RUN npm run build
+
+# Etapa final para execução de testes
+FROM node:22-alpine
+WORKDIR /app
+
+# Copia o necessário do builder
+COPY --from=builder /app ./
+
+# Define variáveis de ambiente de teste (pode ser sobrescrito pelo docker-compose)
+ENV NODE_ENV=test
+
+# Exponha se quiser rodar testes com algum server testável (Ex: Playwright)
+EXPOSE 3000
+
+# Comando de teste — pode ser modificado para seu runner real
+CMD ["npm", "run", "dev:test"]

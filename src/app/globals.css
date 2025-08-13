@@ -1,0 +1,317 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, rgba(100, 100, 100, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(100, 100, 100, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@layer base {
+  :root {
+    /* Light Theme */
+    --background: 0 0% 98%; /* #fafafa */
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%; /* #ffffff */
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%; /* Standard light gray */
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%; /* Standard light gray */
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 95%;
+    --input: 0 0% 95%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    --custom-primary: 215 100% 50%;
+    --custom-secondary: 215 100% 40%;
+  }
+
+  .dark {
+    /* Dark Theme */
+    --background: 0 0% 3.9%; /* #0a0a0a */
+    --foreground: 210 40% 98%;
+
+    --card: 240 3.2% 6.1%; /* #0f0f10 */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 240 3.2% 6.1%; /* #0f0f10 */
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%; /* Standard dark gray */
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%; /* Standard dark gray */
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 212.7 26.8% 83.9%;
+
+    --radius: 0.5rem;
+
+    --custom-primary: 215 100% 60%;
+    --custom-secondary: 215 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Improved transition for theme changes */
+  html,
+  body {
+    @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Adicionar transições para elementos comuns */
+  button,
+  a,
+  input,
+  textarea,
+  select,
+  .card,
+  .border,
+  .bg-background,
+  .bg-foreground,
+  .bg-primary,
+  .bg-secondary,
+  .bg-muted,
+  .bg-accent {
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Add transition for form inputs */
+  input {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+
+  /* Add styles for error state inputs */
+  input[aria-invalid="true"] {
+    animation: pulse-error 2s infinite;
+  }
+
+  /* Add styles for floating labels */
+  .floating-label {
+    transition: all 0.2s ease;
+  }
+
+  /* Shake animation for error states */
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+      transform: translateX(-5px);
+    }
+    20%,
+    40%,
+    60%,
+    80% {
+      transform: translateX(5px);
+    }
+  }
+
+  .shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  @keyframes pulse-error {
+    0% {
+      border-color: hsl(var(--destructive));
+    }
+    50% {
+      border-color: hsl(var(--destructive) / 0.5);
+    }
+    100% {
+      border-color: hsl(var(--destructive));
+    }
+  }
+}
+
+/* Add this for the slow pulse animation */
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Adicionar classes utilitárias para cores personalizadas */
+@layer utilities {
+  .text-custom-primary {
+    color: #000d37;
+  }
+  .text-custom-secondary {
+    color: #2c4fbb;
+  }
+  .text-custom-white {
+    color: #fafafa;
+  }
+  .text-custom-black {
+    color: #09090b;
+  }
+
+  .bg-custom-primary {
+    background-color: #000d37;
+  }
+  .bg-custom-secondary {
+    background-color: #2c4fbb;
+  }
+  .bg-custom-white {
+    background-color: #fafafa;
+  }
+  .bg-custom-black {
+    background-color: #09090b;
+  }
+
+  .border-custom-primary {
+    border-color: #000d37;
+  }
+  .border-custom-secondary {
+    border-color: #2c4fbb;
+  }
+
+  /* Versões escuras para o tema dark */
+  .dark .text-custom-primary {
+    color: #fafafa;
+  }
+  .dark .text-custom-secondary {
+    color: #2c4fbb;
+  }
+  .dark .text-custom-white {
+    color: #fafafa;
+  }
+  .dark .text-custom-black {
+    color: #09090b;
+  }
+
+  .dark .bg-custom-primary {
+    background-color: #fafafa;
+  }
+  .dark .bg-custom-secondary {
+    background-color: #2c4fbb;
+  }
+  .dark .bg-custom-white {
+    background-color: #fafafa;
+  }
+  .dark .bg-custom-black {
+    background-color: #09090b;
+  }
+
+  .dark .border-custom-primary {
+    border-color: #fafafa;
+  }
+  .dark .border-custom-secondary {
+    border-color: #2c4fbb;
+  }
+
+  /* Estilos específicos para floating labels */
+  .dark label[for] {
+    background-color: hsl(var(--background));
+  }
+
+  /* Garantir que o label fique visível sobre a borda */
+  input:focus ~ label,
+  input:not(:placeholder-shown) ~ label {
+    z-index: 1;
+    transition-duration: 0.3s; /* Transição mais lenta */
+  }
+
+  /* Transição suave para o background do label */
+  label[for] {
+    transition: all 0.3s ease-out;
+    background-origin: border-box;
+  }
+}
+
+/* Animação para o efeito de shake no formulário */
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Animações específicas para o FloatingLabelInput */
+@keyframes labelFloat {
+  from {
+    transform: translateY(-50%) scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateY(-50%) scale(0.75);
+    opacity: 1;
+  }
+}
+
+.floating-label-animation {
+  animation: labelFloat 0.2s ease forwards;
+}
+
+/* Melhorar a transição do label quando está flutuando */
+.floating-label {
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease, font-size 0.2s ease, top 0.2s ease;
+  transform-origin: left top;
+}
+
+/* Efeito de ripple para o foco do input */
+@keyframes inputFocusRipple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(44, 79, 187, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 4px rgba(44, 79, 187, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(44, 79, 187, 0);
+  }
+}
+
+.input-focus-ripple {
+  animation: inputFocusRipple 0.8s ease-out;
+}
