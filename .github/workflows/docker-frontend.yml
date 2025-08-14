@@ -1,4 +1,4 @@
-name: Build & Push Frontend (TechPanel)
+name: Build & Push Frontend (AppGestaoTI)
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Build & Push image
         uses: docker/build-push-action@v5
@@ -38,4 +38,4 @@ jobs:
           context: .
           file: Dockerfile.prod
           push: true
-          tags: ghcr.io/devrafaelrabelo/techpanel-frontend:latest
+          tags: ghcr.io/devrafaelrabelo/appgestaoti-techpanel:latest
