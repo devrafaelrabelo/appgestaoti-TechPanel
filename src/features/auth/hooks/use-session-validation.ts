@@ -31,21 +31,21 @@ export function useSessionValidation(): UseSessionValidationReturn {
       return sessionData
     }
 
-    if (!process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL.includes("localhost:3000/api")) {
-      // Se a URL base não estiver configurada para uma API externa, ou ainda aponta para API routes locais
-      // que não existem para /auth/session, retorne um erro ou um estado padrão.
-      console.warn(
-        "⚠️ useSessionValidation: API_BASE_URL não configurada para API externa ou aponta para API routes locais. Simulação de sessão inválida.",
-      )
-      const result: SessionValidationResult = {
-        isValid: false,
-        user: null,
-        error: "Configuração da API externa ausente.",
-      }
-      setSessionData(result)
-      lastValidationRef.current = now
-      return result
-    }
+    // if (!process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL.includes("localhost:3000/api")) {
+    //   // Se a URL base não estiver configurada para uma API externa, ou ainda aponta para API routes locais
+    //   // que não existem para /auth/session, retorne um erro ou um estado padrão.
+    //   console.warn(
+    //     "⚠️ useSessionValidation: API_BASE_URL não configurada para API externa ou aponta para API routes locais. Simulação de sessão inválida.",
+    //   )
+    //   const result: SessionValidationResult = {
+    //     isValid: false,
+    //     user: null,
+    //     error: "Configuração da API externa ausente.",
+    //   }
+    //   setSessionData(result)
+    //   lastValidationRef.current = now
+    //   return result
+    // }
 
     setIsValidating(true)
     console.log(`🔍 useSessionValidation: Validando sessão com backend em ${ApiEndpoints.backend.validateToken}...`)
