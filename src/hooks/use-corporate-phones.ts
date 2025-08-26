@@ -8,7 +8,7 @@ import type {
   CorporatePhoneFilters,
 } from "@/types/corporate-phone"
 import { ApiEndpoints } from "@/lib/api-endpoints"
-import  fetchWithValidation  from "@/features/auth/services/fetch-with-validation"
+import  fetchWithValidation from "@/features/auth/services/fetch-with-validation"
 
 export function useCorporatePhones() {
   const [corporatePhones, setCorporatePhones] = useState<CorporatePhone[]>([])
