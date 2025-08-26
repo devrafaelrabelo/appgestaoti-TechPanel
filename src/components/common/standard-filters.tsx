@@ -128,11 +128,13 @@ export function StandardFilters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                {field.options?.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
+                {field.options
+                  ?.filter((option) => option.value !== "")
+                  .map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
