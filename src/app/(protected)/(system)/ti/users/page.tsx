@@ -316,7 +316,11 @@ export default function AdminUsersPage() {
                     <Pagination
                       currentPage={pagination.currentPage}
                       totalPages={pagination.totalPages}
+                      totalElements={pagination.totalElements}
+                      pageSize={pagination.pageSize ?? 10} // <-- valor padrão
                       onPageChange={handlePageChange}
+                      onPageSizeChange={(size) => updateFilters({ pageSize: size, page: 0 })}
+                      isLoading={loading}
                     />
                   </div>
                 )}

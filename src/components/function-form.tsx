@@ -40,8 +40,10 @@ export function FunctionForm({ initialData, onSubmit, onCancel, loading = false 
         const response = await fetchWithValidation(ApiEndpoints.backend.adminDepartmentList)
         if (response.ok) {
           const data = await response.json()
-          setDepartments(data.departments || [])
+          console.log(data.departments || ['Nenhum departamento encontrado'])
+          setDepartments(data.departments || [])  
         }
+        
       } catch (error) {
         console.error("Erro ao buscar departamentos:", error)
       } finally {
