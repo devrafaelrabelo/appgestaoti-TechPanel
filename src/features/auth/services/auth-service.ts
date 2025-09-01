@@ -1,18 +1,30 @@
-import { ApiEndpoints } from "@/lib/api-endpoints" 
+import { ApiEndpoints } from "@/lib/api-endpoints"
 import { checkBackendHealth, getBackendStatusMessage } from "../utils/backend-health"
 import fetchWithValidation from "./fetch-with-validation"
+
+// Constantes
+const TIMEOUT = 10000
+const DEFAULT_RETRIES = 1
+const ERROR_MESSAGES = {
+  loginFailed: "Erro ao realizar login",
+  invalidCredentials: "Email ou senha incorretos",
+  accessDenied: "Acesso negado",
+  timeout: "Timeout: O servidor demorou muito para responder.",
+  connectionError: "Erro de conexão com o servidor.",
+  invalid2FA: "Código de verificação inválido",
+}
 
 // Tipos para autenticação
 export interface User {
   id?: string
-  username: string // Mantido para compatibilidade, mas pode ser derivado do email
+  username: string
   fullName?: string
   email?: string
   avatar?: string | null
   preferredLanguage?: string
   interfaceTheme?: string
   roles?: string[]
-  departments?: string[] // Novo campo
+  departments?: string[]
   userGroups?: string[]
   position?: string
   functions?: string[]
@@ -30,7 +42,7 @@ export interface AuthResponse {
 
 // Função auxiliar para analisar os dados do usuário
 const parseUser = (data: any): User => {
-  const userData = data.user || data // Lida com diferentes estruturas de resposta
+  const userData = data.user || data
   return {
     id: userData.id || userData.userId,
     username: userData.username || userData.login || (userData.email ? userData.email.split("@")[0] : "unknown"),
@@ -40,7 +52,7 @@ const parseUser = (data: any): User => {
     preferredLanguage: userData.preferredLanguage,
     interfaceTheme: userData.interfaceTheme,
     roles: userData.roles || userData.authorities || [],
-    departments: userData.departments || [], // Mapeia o novo campo
+    departments: userData.departments || [],
     userGroups: userData.userGroups || [],
     position: userData.position,
     functions: userData.functions || [],
@@ -48,10 +60,24 @@ const parseUser = (data: any): User => {
   }
 }
 
-// Função auxiliar para verificar se estamos em ambiente de cliente (browser)
-const isClient = typeof window !== "undefined"
+// Função auxiliar para tratar erros de resposta
+const handleErrorResponse = async (response: Response): Promise<string> => {
+  try {
+    const errorData = await response.json()
+    return errorData.message || errorData.error || ERROR_MESSAGES.loginFailed
+  } catch {
+    switch (response.status) {
+      case 401:
+        return ERROR_MESSAGES.invalidCredentials
+      case 403:
+        return ERROR_MESSAGES.accessDenied
+      default:
+        return `Erro HTTP ${response.status}`
+    }
+  }
+}
 
-// Serviço de autenticação para backend Java Spring com cookies HttpOnly
+// Serviço de autenticação
 export const authService = {
   /**
    * Verifica se o backend está online e acessível
@@ -67,14 +93,10 @@ export const authService = {
   },
 
   /**
-   * Realiza o login do usuário no backend Spring Boot.
-   * O backend deve definir os cookies HttpOnly na resposta.
+   * Realiza o login do usuário no backend.
    */
   login: async (email: string, password: string, rememberMe = false): Promise<AuthResponse> => {
     try {
-      console.log("🔐 Iniciando login para:", email)
-
-      // Verificar conectividade primeiro
       const backendStatus = await authService.checkBackendConnection()
       if (!backendStatus.isOnline) {
         return {
@@ -91,86 +113,35 @@ export const authService = {
           Accept: "application/json",
           "X-Requested-With": "XMLHttpRequest",
         },
-        body: JSON.stringify({
-          email,
-          password,
-          rememberMe,
-        }),
-        credentials: "include", // Essencial para receber cookies HttpOnly
-        signal: AbortSignal.timeout(10000),
+        body: JSON.stringify({ email, password, rememberMe }),
+        credentials: "include",
+        signal: AbortSignal.timeout(TIMEOUT),
       })
 
-      console.log("📡 Status da resposta Spring:", response.status)
-
-      // ✅ Tratar 2FA (Status 206 - Partial Content)
       if (response.status === 206) {
-        try {
-          const data = await response.json()
-          console.log("🔐 2FA necessário:", data)
-
-          if (data["2fa_required"] === true) {
-            return {
-              success: false,
-              requires2FA: true,
-              message: data.message || "Autenticação de dois fatores necessária",
-              sessionId: data.sessionId || data.session_id,
-              backendStatus: "🔐 2FA Requerido",
-            }
+        const data = await response.json()
+        if (data["2fa_required"]) {
+          return {
+            success: false,
+            requires2FA: true,
+            message: data.message || "Autenticação de dois fatores necessária",
+            sessionId: data.sessionId || data.session_id,
+            backendStatus: "🔐 2FA Requerido",
           }
-        } catch (parseError) {
-          console.error("❌ Erro ao processar resposta 2FA:", parseError)
         }
       }
 
       if (response.ok) {
-        let responseData: any = {}
-        try {
-          const responseText = await response.text()
-          if (responseText.trim()) {
-            responseData = JSON.parse(responseText)
-          }
-        } catch (parseError) {
-          console.warn("⚠️ Resposta sem JSON, mas cookies podem ter sido definidos.")
-        }
-
-        // Aguardar processamento dos cookies HttpOnly pelo navegador
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        // Após o login, o endpoint /me geralmente é chamado para obter todos os detalhes do usuário
-        // Se o endpoint de login já retorna todos os dados, podemos usar responseData.data
-        // Caso contrário, precisaríamos de uma chamada separada para /me aqui.
-        // Para este exemplo, vamos simular que o login já retorna os dados necessários ou que
-        // o AuthContext fará a chamada para getCurrentUser que busca do /me.
-
-        // Se o endpoint de login já retorna os dados do usuário (incluindo departments)
-        // no formato esperado por parseUser (ex: responseData.data ou responseData.user)
+        const responseData = await response.json()
         const user = parseUser(responseData.data || responseData.user || { email })
-
         return {
           success: true,
-          user: user,
+          user,
           backendStatus: "✅ Conectado",
         }
       }
 
-      // Tratar erros
-      let errorMessage = "Erro ao realizar login"
-      try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorData.error || errorMessage
-      } catch {
-        switch (response.status) {
-          case 401:
-            errorMessage = "Email ou senha incorretos"
-            break
-          case 403:
-            errorMessage = "Acesso negado"
-            break
-          default:
-            errorMessage = `Erro HTTP ${response.status}`
-        }
-      }
-
+      const errorMessage = await handleErrorResponse(response)
       return {
         success: false,
         message: errorMessage,
@@ -178,18 +149,10 @@ export const authService = {
       }
     } catch (error: any) {
       console.error("❌ Erro na requisição de login:", error)
-
       if (error.name === "TimeoutError") {
-        return {
-          success: false,
-          message: "Timeout: O servidor demorou muito para responder.",
-        }
+        return { success: false, message: ERROR_MESSAGES.timeout }
       }
-
-      return {
-        success: false,
-        message: "Erro de conexão com o servidor.",
-      }
+      return { success: false, message: ERROR_MESSAGES.connectionError }
     }
   },
 
@@ -198,8 +161,6 @@ export const authService = {
    */
   verify2FA: async (code: string, rememberMe = false): Promise<AuthResponse> => {
     try {
-      console.log("🔐 Verificando código 2FA...")
-
       const response = await fetch(`${ApiEndpoints.backend.verify2fa}`, {
         method: "POST",
         headers: {
@@ -207,110 +168,56 @@ export const authService = {
           Accept: "application/json",
           "X-Requested-With": "XMLHttpRequest",
         },
-        body: JSON.stringify({
-          twoFactorCode: code,
-          rememberMe: rememberMe,
-        }),
+        body: JSON.stringify({ twoFactorCode: code, rememberMe }),
         credentials: "include",
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(TIMEOUT),
       })
 
-      console.log("📡 Status da verificação 2FA:", response.status)
-
       if (response.ok) {
-        let responseData: any = {}
-        try {
-          const responseText = await response.text()
-          if (responseText.trim()) {
-            responseData = JSON.parse(responseText)
-          }
-        } catch (parseError) {
-          console.warn("⚠️ Resposta sem JSON, mas cookies podem ter sido definidos.")
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        const responseData = await response.json()
         const user = parseUser(responseData.data || responseData.user)
-
         return {
           success: true,
-          user: user,
+          user,
           backendStatus: "✅ 2FA Verificado",
         }
       }
 
-      let errorMessage = "Código de verificação inválido"
-      try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorData.error || errorMessage
-      } catch {
-        // ... (tratamento de erro existente)
-      }
-
+      const errorMessage = await handleErrorResponse(response)
       return {
         success: false,
         message: errorMessage,
         backendStatus: `⚠️ Erro 2FA ${response.status}`,
       }
     } catch (error: any) {
-      // ... (tratamento de erro existente)
+      console.error("❌ Erro ao verificar 2FA:", error)
       if (error.name === "TimeoutError") {
-        return {
-          success: false,
-          message: "Timeout: O servidor demorou muito para responder.",
-        }
+        return { success: false, message: ERROR_MESSAGES.timeout }
       }
-      return {
-        success: false,
-        message: "Erro de conexão com o servidor.",
-      }
+      return { success: false, message: ERROR_MESSAGES.connectionError }
     }
   },
 
   /**
-   * Obtém o perfil do usuário atual validando os cookies HttpOnly com o backend.
-   * Esta é a ÚNICA forma segura de verificar autenticação com cookies HttpOnly.
-   * Esta função agora buscará do endpoint /me.
+   * Obtém o perfil do usuário atual
    */
   getCurrentUser: async (): Promise<User | null> => {
-    if (!isClient) return null
-
-    const authStatusCookie = document.cookie
-      .split("; ")
-      .find((c) => c.startsWith("auth_status="))
-      ?.split("=")[1]
-
-    if (authStatusCookie === "unauthenticated") {
-      console.log("⛔ auth_status indica que usuário não está autenticado — ignorando chamada /me")
-      return null
-    }
-
     try {
-      console.log("🔄 Verificando usuário atual com backend (/me)...")
-
-      // Endpoint /me para obter dados do usuário
       const response = await fetchWithValidation(`${ApiEndpoints.backend.userMe}`, {
-        // Alterado para /api/users/me
         method: "GET",
         headers: {
           Accept: "application/json",
           "X-Requested-With": "XMLHttpRequest",
-          "User-Agent": navigator.userAgent, // Adicionado User-Agent
         },
         credentials: "include",
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(TIMEOUT),
       })
 
       if (response.ok) {
         const responseData = await response.json()
-        if (responseData.success && responseData.data) {
-          console.log("✅ Usuário validado com sucesso via /me:", responseData.data)
-          return parseUser(responseData.data) // parseUser espera o objeto de dados do usuário
-        } else {
-          console.warn("🚫 Resposta de /me não foi bem-sucedida ou não continha dados:", responseData)
-          return null
-        }
-      }  
-      
+        return parseUser(responseData.data || responseData.user)
+      }
+
       console.warn("🚫 Validação com /me falhou. Status:", response.status)
       return null
     } catch (error) {
@@ -320,14 +227,9 @@ export const authService = {
   },
 
   /**
-   * Realiza o logout no backend Spring Boot.
-   * O backend deve invalidar/remover os cookies HttpOnly.
+   * Realiza o logout no backend
    */
   logout: async (): Promise<void> => {
-    if (!isClient) return
-
-    console.log("🚪 Iniciando logout...")
-
     try {
       const response = await fetch(`${ApiEndpoints.backend.logout}`, {
         method: "POST",
@@ -335,16 +237,14 @@ export const authService = {
           "Content-Type": "application/json",
           "X-Requested-With": "XMLHttpRequest",
         },
-        credentials: "include", // Envia cookies para invalidação
-        signal: AbortSignal.timeout(5000),
+        credentials: "include",
+        signal: AbortSignal.timeout(TIMEOUT),
       })
 
-      if (response.ok) {
-        console.log("✅ Logout realizado com sucesso.")
-      } else {
+      if (!response.ok) {
         console.warn("⚠️ Logout falhou no backend, mas dados locais serão limpos.")
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Erro ao fazer logout:", error)
     }
   },

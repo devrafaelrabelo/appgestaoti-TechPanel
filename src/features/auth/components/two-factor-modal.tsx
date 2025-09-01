@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,32 +15,26 @@ interface TwoFactorModalProps {
   onSubmit: (code: string) => Promise<boolean>
 }
 
+// Função utilitária para formatar o código
+const formatCode = (value: string): string => {
+  const numbers = value.replace(/\D/g, "") // Remove tudo que não for número
+  const limited = numbers.slice(0, 6) // Limita a 6 dígitos
+  return limited.length > 3 ? `${limited.slice(0, 3)} ${limited.slice(3)}` : limited
+}
+
 export function TwoFactorModal({ isOpen, onClose, onSubmit }: TwoFactorModalProps) {
-  const [code, setCode] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [state, setState] = useState({ code: "", isLoading: false })
   const { toast } = useToast()
 
-  const formatCode = (value: string) => {
-    // Remove tudo que não for número
-    const numbers = value.replace(/\D/g, "")
-    // Limita a 6 dígitos
-    const limited = numbers.slice(0, 6)
-    // Adiciona espaço no meio (000 000)
-    if (limited.length > 3) {
-      return `${limited.slice(0, 3)} ${limited.slice(3)}`
-    }
-    return limited
-  }
-
-  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCode(e.target.value)
-    setCode(formatted)
-  }
+    setState((prev) => ({ ...prev, code: formatted }))
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const cleanCode = code.replace(/\s/g, "")
+    const cleanCode = state.code.replace(/\s/g, "")
 
     if (cleanCode.length !== 6) {
       toast({
@@ -52,7 +45,7 @@ export function TwoFactorModal({ isOpen, onClose, onSubmit }: TwoFactorModalProp
       return
     }
 
-    setIsLoading(true)
+    setState((prev) => ({ ...prev, isLoading: true }))
 
     try {
       const success = await onSubmit(cleanCode)
@@ -63,7 +56,7 @@ export function TwoFactorModal({ isOpen, onClose, onSubmit }: TwoFactorModalProp
           title: "Código verificado",
           description: "Autenticação de dois fatores confirmada com sucesso.",
         })
-        setCode("")
+        setState({ code: "", isLoading: false })
         onClose()
       } else {
         toast({
@@ -79,16 +72,16 @@ export function TwoFactorModal({ isOpen, onClose, onSubmit }: TwoFactorModalProp
         description: "Ocorreu um erro ao verificar o código. Tente novamente.",
       })
     } finally {
-      setIsLoading(false)
+      setState((prev) => ({ ...prev, isLoading: false }))
     }
   }
 
-  const handleClose = () => {
-    if (!isLoading) {
-      setCode("")
+  const handleClose = useCallback(() => {
+    if (!state.isLoading) {
+      setState({ code: "", isLoading: false })
       onClose()
     }
-  }
+  }, [state.isLoading, onClose])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose} modal={true}>
@@ -112,22 +105,27 @@ export function TwoFactorModal({ isOpen, onClose, onSubmit }: TwoFactorModalProp
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="000 000"
-              value={code}
+              value={state.code}
               onChange={handleCodeChange}
               className="text-center text-lg font-mono tracking-widest"
               maxLength={7} // 6 dígitos + 1 espaço
-              disabled={isLoading}
+              disabled={state.isLoading}
               autoFocus
+              aria-live="polite"
             />
             <p className="text-xs text-muted-foreground">Insira os 6 dígitos do código de verificação</p>
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading} className="flex-1">
+            <Button type="button" variant="outline" onClick={handleClose} disabled={state.isLoading} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading || code.replace(/\s/g, "").length !== 6} className="flex-1">
-              {isLoading ? (
+            <Button
+              type="submit"
+              disabled={state.isLoading || state.code.replace(/\s/g, "").length !== 6}
+              className="flex-1"
+            >
+              {state.isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Verificando...

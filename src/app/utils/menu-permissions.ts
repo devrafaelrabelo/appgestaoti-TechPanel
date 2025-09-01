@@ -25,10 +25,8 @@ export function getCurrentSystem(pathname: string): string | null {
   const match = pathname.match(/^\/(ti|rh|comercial)/i)
   if (match) {
     const system = match[1].toUpperCase()
-    console.log("Sistema detectado:", system)
     return system
   }
-  console.log("Nenhum sistema detectado no pathname:", pathname)
   return null
 }
 

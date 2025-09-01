@@ -1,87 +1,98 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { User } from "lucide-react" // Importar o ícone
+import { User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input" // Importar o Input padrão
-import { Label } from "@/components/ui/label" // Importar o Label padrão
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
-import { cn } from "@/lib/utils" // Para classes condicionais
-import { config } from "@/config" // Importar a configuração do domínio permitido
+import { cn } from "@/lib/utils"
+import { config } from "@/config"
 
 export function ForgotPasswordForm() {
-  const [identifier, setIdentifier] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [identifierError, setIdentifierError] = useState(false)
+  const [formState, setFormState] = useState({
+    identifier: "",
+    isSubmitting: false,
+    identifierError: false,
+  })
   const router = useRouter()
   const { toast } = useToast()
 
-  const domain = config.app.allowedEmailDomain;
-  const tld = domain === "bemprotege" ? "com.br" : "com";
+  const domain = config.app.allowedEmailDomain
+  const tld = domain === "bemprotege" ? "com.br" : "com"
 
-  const emailRegex = new RegExp(`^[a-zA-Z0-9._%+-]+@${domain}\\.${tld}$`);
-      
+  const emailRegex = useMemo(() => new RegExp(`^[a-zA-Z0-9._%+-]+@${domain}\\.${tld}$`), [domain, tld])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setIdentifierError(false) // Resetar erro
+  const validateIdentifier = useCallback(
+    (identifier: string) => {
+      if (!identifier.trim()) {
+        return "Por favor, informe seu nome de usuário ou email."
+      }
+      if (identifier.includes("@") && !emailRegex.test(identifier)) {
+        return "Por favor, insira um email válido do domínio @example.com."
+      }
+      return null
+    },
+    [emailRegex],
+  )
 
-    if (!identifier || identifier.trim() === "") {
-      setIdentifierError(true)
-      setIsSubmitting(false)
-      toast({
-        variant: "destructive",
-        title: "Erro de validação",
-        description: "Por favor, informe seu nome de usuário ou email.",
-      })
-      return
-    }
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setFormState((prev) => ({
+      ...prev,
+      identifier: value,
+      identifierError: prev.identifierError && value.trim() === "" ? true : false,
+    }))
+  }, [])
 
-    const isEmail = identifier.includes("@")
-    if (isEmail && !emailRegex.test(identifier)) {
-      // Não definir identifierError aqui, pois o erro é sobre o formato do email, não sobre estar vazio
-      setIsSubmitting(false)
-      toast({
-        variant: "destructive",
-        title: "Erro no formato do email",
-        description: "Por favor, insira um email válido do domínio @example.com.",
-      })
-      return
-    }
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault()
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulação de envio
+      const { identifier } = formState
+      const error = validateIdentifier(identifier)
 
-      toast({
-        title: "Solicitação enviada",
-        description: "Instruções de recuperação foram enviadas para o email cadastrado.",
-        variant: "success",
-      })
+      if (error) {
+        setFormState((prev) => ({ ...prev, identifierError: true }))
+        toast({
+          variant: "destructive",
+          title: "Erro de validação",
+          description: error,
+        })
+        return
+      }
 
-      setTimeout(() => {
-        router.push("/login")
-      }, 2000)
-    } catch (error) {
-      toast({
-        title: "Erro no envio",
-        description: "Não foi possível processar sua solicitação. Tente novamente.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+      setFormState((prev) => ({ ...prev, isSubmitting: true }))
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIdentifier(e.target.value)
-    if (identifierError && e.target.value.trim() !== "") {
-      setIdentifierError(false)
-    }
-  }
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulação de envio
+
+        toast({
+          title: "Solicitação enviada",
+          description: "Instruções de recuperação foram enviadas para o email cadastrado.",
+          variant: "success",
+        })
+
+        setTimeout(() => {
+          router.push("/login")
+        }, 2000)
+      } catch (error) {
+        toast({
+          title: "Erro no envio",
+          description: "Não foi possível processar sua solicitação. Tente novamente.",
+          variant: "destructive",
+        })
+      } finally {
+        setFormState((prev) => ({ ...prev, isSubmitting: false }))
+      }
+    },
+    [formState, validateIdentifier, toast, router],
+  )
+
+  const { identifier, isSubmitting, identifierError } = formState
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -105,7 +116,7 @@ export function ForgotPasswordForm() {
             onChange={handleChange}
             required
             className={cn(
-              "pl-10", // Padding para o ícone
+              "pl-10",
               identifierError && "border-destructive focus-visible:ring-destructive",
             )}
             aria-invalid={identifierError}

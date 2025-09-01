@@ -5,6 +5,8 @@ import { useTheme } from "@/hooks/use-theme"
 import { userPreferencesService } from "@/features/user/services/user-preferences-service"
 import { useAuth } from "@/features/auth/context/auth-context"
 
+
+
 export function useUserTheme() {
   const { theme, setTheme, resolvedTheme, mounted, toggleTheme, isLight, isDark } = useTheme()
   const { isAuthenticated, isLoading } = useAuth()

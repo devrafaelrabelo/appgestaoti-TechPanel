@@ -4,6 +4,7 @@ import { LoginForm } from "@/features/auth/components/login-form"
 import { APP_NAME, LOGO_URL } from "@/config"
 import { useAuth } from "@/features/auth/context/auth-context"
 
+
 export default function LoginPage() {
   const { isInitialLoading } = useAuth()
 

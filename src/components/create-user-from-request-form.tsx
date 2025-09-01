@@ -291,7 +291,6 @@ export function CreateUserFromRequestForm({ requestData, onSuccess, onCancel }: 
         signal: AbortSignal.timeout(10000),
       })
 
-      console.log("Usuário criado com sucesso:", requestData)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
