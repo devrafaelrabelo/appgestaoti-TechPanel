@@ -2,14 +2,46 @@ name: CI
 on:
   pull_request:
     branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm run lint --if-present
-      - run: npm run test -- --ci --coverage --if-present
-      - run: npm run build
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund || npm install --no-audit --no-fund
+      - run: npm run --if-present lint
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund || npm install --no-audit --no-fund
+      - run: npm run --if-present test -- --ci --coverage
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund || npm install --no-audit --no-fund
+      - run: npm run --if-present build
