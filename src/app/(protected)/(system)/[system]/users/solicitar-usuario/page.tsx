@@ -190,7 +190,6 @@ export default function GerenciarSolicitacoesUsuarioPage() {
   }, [requests])
 
   const handleNewRequestSuccess = (newRequestData: UserFormData) => {
-    console.log("Nova solicitação enviada (dados do form):", newRequestData)
     setIsModalOpen(false)
     fetchUserRequests()
     toast({
@@ -289,7 +288,6 @@ export default function GerenciarSolicitacoesUsuarioPage() {
         )
       }
 
-      console.log("Cancelar solicitação (simulado):", requestToCancelId)
       toast({
         title: "Solicitação Cancelada",
         description: "A solicitação foi marcada como cancelada (simulado).",

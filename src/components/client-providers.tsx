@@ -15,7 +15,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <AuthProvider>
-        <AuthWrapper>{children}</AuthWrapper>
+        {children}
         <Toaster />
       </AuthProvider>
     </ThemeProvider>
