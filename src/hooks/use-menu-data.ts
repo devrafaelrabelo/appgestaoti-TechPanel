@@ -17,9 +17,6 @@ export function useMenuData() {
     try {
       setIsLoading(true)
       setError(null)
-
-      console.log("Iniciando fetch do menu data...")
-
       const response = await fetchWithValidation(`${ApiEndpoints.backend.userPermissions}`)
 
       if (!response.ok) {
@@ -30,17 +27,8 @@ export function useMenuData() {
 
       // Detecta o sistema atual baseado na URL
       const currentSystem = getCurrentSystem(pathname)
-
-      console.log("=== DADOS RECEBIDOS ===")
-      console.log("Sistema atual detectado:", currentSystem)
-      console.log("Pathname atual:", pathname)
-      console.log("Dados brutos do menu:", JSON.stringify(rawMenuData, null, 2))
-
       // Processa os dados do menu considerando o sistema atual
       const processedData = processMenuData(rawMenuData, currentSystem)
-
-      console.log("=== DADOS PROCESSADOS ===")
-      console.log("Dados processados do menu:", JSON.stringify(processedData, null, 2))
 
       setMenuData(processedData)
     } catch (err) {
@@ -53,7 +41,6 @@ export function useMenuData() {
   }
 
   useEffect(() => {
-    console.log("useEffect disparado - pathname mudou:", pathname)
     fetchMenuData()
   }, [pathname]) // Recarrega quando a rota muda para detectar mudanças de sistema
 

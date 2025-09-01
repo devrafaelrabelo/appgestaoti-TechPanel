@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { useSessionStorage } from "@/hooks/use-session-storage"
 import { useEffect } from "react"
-import { useAuth } from "@/features/auth/context/auth-context"
 import { LogOut } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { useAuthHelpers } from "@/features/auth/context/auth-helpers"
 
 export default function modulesPage() {
   const router = useRouter()
-  const { isAuthenticated, logout, user, isLoading } = useAuth()
+  const { isAuthenticated, logout, user, isLoading } = useAuthHelpers()
   const { toast } = useToast()
   const [selectedSystem, setSelectedSystem] = useSessionStorage<string | null>("selectedSystem", null)
 
