@@ -1,0 +1,15 @@
+name: CI
+on:
+  pull_request:
+    branches: [develop, main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run lint --if-present
+      - run: npm run test -- --ci --coverage --if-present
+      - run: npm run build
