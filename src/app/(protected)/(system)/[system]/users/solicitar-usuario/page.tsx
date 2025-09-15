@@ -81,7 +81,7 @@ export default function GerenciarSolicitacoesUsuarioPage() {
   const { toast } = useToast()
 
   const fetchUserRequests = useCallback(async () => {
-    if (!ApiEndpoints.backend.adminUsersRequest) {
+    if (!ApiEndpoints.backend.userRequestsList) {
       setErrorList("URL base da API não configurada. Verifique as variáveis de ambiente.")
       setIsLoadingList(false)
       toast({
@@ -184,7 +184,7 @@ export default function GerenciarSolicitacoesUsuarioPage() {
     return {
       total: requests.length,
       pending: requests.filter((req) => req.status === "PENDING").length,
-      approved: requests.filter((req) => req.status === "APPROVED").length,
+      approved: requests.filter((req) => req.status === "COMPLETED").length,
       rejected: requests.filter((req) => req.status === "REJECTED").length,
     }
   }, [requests])
@@ -216,7 +216,7 @@ export default function GerenciarSolicitacoesUsuarioPage() {
       setIsDetailsModalOpen(true)
 
       try {
-        const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequestId}${request.id}`, {
+        const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequestsId}${request.id}`, {
           method: "GET",
           headers: {
             Accept: "application/json",
@@ -273,7 +273,7 @@ export default function GerenciarSolicitacoesUsuarioPage() {
 
     setIsCancelling(true)
     try {
-      const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequestId}${requestToCancelId}`, {
+      const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequestsId}${requestToCancelId}`, {
         method: "DELETE",
         credentials: "include",
         headers: {
@@ -330,7 +330,7 @@ export default function GerenciarSolicitacoesUsuarioPage() {
         requestIds: Array.from(selectedIds),
       }
 
-      const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequest}`, {
+      const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequestsId}`, {
         method: "DELETE",
         credentials: "include",
         headers: {
