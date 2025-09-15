@@ -281,7 +281,7 @@ export function CreateUserFromRequestForm({ requestData, onSuccess, onCancel }: 
         throw new Error("URL da API não configurada")
       }
 
-      const response = await fetchWithValidation(`${ApiEndpoints.backend.createUserFromRequest}${requestData.id}`, {
+      const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequestsCreate}${requestData.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
