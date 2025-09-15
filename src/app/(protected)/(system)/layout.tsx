@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useSessionStorage } from "@/hooks/use-session-storage"
 import { getSystemFromPath, SYSTEMS_CONFIG } from "@/navigation/config"
 import { useAuth } from "@/features/auth/context/auth-context"
+
 import { SystemHeader } from "@/components/system-header"
 import { SystemSidebar } from "@/components/system-sidebar"
 import { SiteFooter } from "@/components/site-footer"

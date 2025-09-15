@@ -40,7 +40,6 @@ export function FunctionForm({ initialData, onSubmit, onCancel, loading = false 
         const response = await fetchWithValidation(ApiEndpoints.backend.adminDepartmentList)
         if (response.ok) {
           const data = await response.json()
-          console.log(data.departments || ['Nenhum departamento encontrado'])
           setDepartments(data.departments || [])  
         }
         

@@ -9,10 +9,10 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
-import { useAuth } from "../context/auth-context"
 import { authService } from "../services/auth-service"
 import { TwoFactorModal } from "./two-factor-modal"
 import { config } from "@/config" // Importar a configuração do domínio permitido
+import { useAuth } from "../context/auth-context"
 
 export function LoginForm() {
   const [formData, setFormData] = useState({
@@ -96,14 +96,12 @@ export function LoginForm() {
         return
       }
 
-      console.log("🔐 LoginForm: Iniciando login...")
 
       // ✅ Fazer login direto via authService para capturar 2FA
       const loginResponse = await authService.login(formData.email, formData.password, formData.remember)
 
       // ✅ Verificar se 2FA é necessário
       if (loginResponse.requires2FA) {
-        console.log("🔐 2FA necessário, abrindo modal...")
         setSessionId(loginResponse.sessionId)
         setShow2FAModal(true)
         setIsLoading(false)
@@ -118,7 +116,6 @@ export function LoginForm() {
 
       // ✅ Login normal (sem 2FA)
       if (loginResponse.success) {
-        console.log("✅ LoginForm: Login bem-sucedido!")
 
         toast({
           variant: "success",
@@ -131,7 +128,6 @@ export function LoginForm() {
           window.location.href = "/modules"
         }, 800)
       } else {
-        console.log("❌ LoginForm: Login falhou:", loginResponse.message)
         setFormData((prev) => ({ ...prev, password: "" }))
         setFieldErrors({ email: true, password: true })
 
@@ -162,14 +158,10 @@ export function LoginForm() {
   // ✅ Função para verificar código 2FA
   const handle2FASubmit = async (code: string): Promise<boolean> => {
     try {
-      console.log("🔐 Verificando código 2FA...")
-
       // ✅ Passar o rememberMe original do login
       const verifyResponse = await authService.verify2FA(code, formData.remember)
 
       if (verifyResponse.success) {
-        console.log("✅ 2FA verificado com sucesso!")
-
         toast({
           variant: "success",
           title: "Autenticação concluída",
@@ -183,7 +175,6 @@ export function LoginForm() {
 
         return true
       } else {
-        console.log("❌ Falha na verificação 2FA:", verifyResponse.message)
         return false
       }
     } catch (error) {
