@@ -108,16 +108,7 @@ export const ApiEndpoints = {
 
     // HEALTH CHECK
     health: `${API_BASE}/health`,
-    systemLogs: `${API_BASE}/admin/logs`,
-
-    //  endpoints   
-    adminUsersCreate: `${API_BASE}/admin/users/create`,
-    adminUsersRequest: `${API_BASE}/admin/users/request`,
-    adminUsersRequestId: `${API_BASE}/admin/users/request/`,
-    adminUsersRequestBatch: `${API_BASE}/admin/users/request/batch`,
-    adminUsersDetails: `${API_BASE}/admin/users`,
-
-    adminUsersFunctionsList: `${API_BASE}/admin/functions/by-function`,      
+    systemLogs: `${API_BASE}/admin/logs`,   
 
     // PERMISSIONS
     adminPermissionsList: `${API_BASE}/admin/permissions`,

@@ -65,7 +65,7 @@ export default function gerenciarsolicitacao() {
   // Calcular estatísticas das solicitações
   const stats = useMemo(() => {
     const total = requests.length
-    const approved = requests.filter((r) => r.status === "APPROVED").length
+    const approved = requests.filter((r) => r.status === "COMPLETED").length
     const pending = requests.filter((r) => r.status === "PENDING").length
     const rejected = requests.filter((r) => r.status === "REJECTED").length
 
@@ -89,7 +89,7 @@ export default function gerenciarsolicitacao() {
     setError(null)
 
     try {
-      const response = await fetchWithValidation(`${ApiEndpoints.backend.adminUsersRequest}`, {
+      const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequestsList}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -191,7 +191,7 @@ export default function gerenciarsolicitacao() {
 
     try {
       setIsLoadingDetails(true)
-      const response = await fetchWithValidation(`${ApiEndpoints.backend.adminUserRequestId}${requestId}`, {
+      const response = await fetchWithValidation(`${ApiEndpoints.backend.userRequestsId}${requestId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

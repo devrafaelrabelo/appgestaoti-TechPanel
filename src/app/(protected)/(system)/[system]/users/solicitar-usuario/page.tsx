@@ -96,7 +96,7 @@ export default function GerenciarSolicitacoesUsuarioPage() {
     setErrorList(null)
     try {
       if (currentSystem.name === "TI") {
-        apiUrl = `${ApiEndpoints.backend.adminUserRequestsList}`
+        apiUrl = `${ApiEndpoints.backend.userRequestsList}`;
       }
 
       const response = await fetchWithValidation(apiUrl, {
